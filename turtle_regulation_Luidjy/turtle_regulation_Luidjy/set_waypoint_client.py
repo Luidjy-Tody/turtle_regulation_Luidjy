@@ -17,7 +17,7 @@ class ClientWayPoint(Node):
         )
 
         # Variable pour savoir si la tortue bouge
-        self.is_moving = True
+        self.is_moving = False
 
         # Subscriber sur le topic is_moving
         self.subscription = self.create_subscription(
@@ -36,7 +36,7 @@ class ClientWayPoint(Node):
         while not self.client.wait_for_service(timeout_sec=1.0):
             self.get_logger().warn("Service non disponible, nouvelle tentative...")
 
-        # Attendre que la tortue ne soit plus en mouvement
+        # Attendre que la tortue soit à l'arrêt avant d'envoyer
         self.get_logger().info("Attente que la tortue s'arrete...")
         while self.is_moving:
             rclpy.spin_once(self)
@@ -53,22 +53,31 @@ class ClientWayPoint(Node):
 
         # Traiter la réponse
         response = future.result()
-        if response.res:
+        if response is not None and response.res:
             self.get_logger().info(f"Succes : waypoint modifie vers ({x}, {y})")
         else:
             self.get_logger().error("Echec : waypoint non modifie")
+            return
 
-        return response
+        # Attendre que la tortue commence à bouger
+        while not self.is_moving:
+            rclpy.spin_once(self)
+
+        # Attendre qu'elle termine son déplacement
+        while self.is_moving:
+            rclpy.spin_once(self)
 
 
 def main(args=None):
     rclpy.init(args=args)
     node = ClientWayPoint()
 
-    # Les 3 appels demandés dans le sujet
+    # Points du carré envoyés un par un
     node.envoyer_requete(2.0, 2.0)
     node.envoyer_requete(8.0, 2.0)
     node.envoyer_requete(8.0, 8.0)
+    node.envoyer_requete(2.0, 8.0)
+    node.envoyer_requete(2.0, 2.0)
 
     node.destroy_node()
     rclpy.shutdown()

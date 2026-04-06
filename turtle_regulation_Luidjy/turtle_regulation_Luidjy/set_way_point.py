@@ -22,7 +22,7 @@ class SetWayPoint(Node):
         self.waypoint_y = 7.0
 
         # (5) Définir la constante Kp pour la commande proportionnelle
-        self.kp = 2.0
+        self.kp = 3.0
 
         # (2) Souscrire au topic /turtle1/pose de type Pose
         self.subscription = self.create_subscription(
@@ -40,7 +40,7 @@ class SetWayPoint(Node):
         )
 
         # (Partie 2 - 2) Gain linéaire
-        self.kpl = 3.0
+        self.kpl = 1.0
 
         # (Partie 2 - 3) Seuil de distance
         self.distance_tolerance = 0.1
@@ -123,7 +123,13 @@ class SetWayPoint(Node):
             return
 
         # (Partie 2 - 2) vitesse linéaire
-        v = self.kpl * distance
+        # v = self.kpl * distance
+
+         # si la tortue n'est pas bien orientee, elle tourne d'abord
+        if abs(e) > 0.1:
+            v = 0.0
+        else:
+            v = self.kpl * distance
 
         cmd = Twist()
         cmd.angular.z = u
