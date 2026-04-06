@@ -26,6 +26,7 @@ setup(
         'console_scripts': [
             
             'set_way_point = turtle_regulation_Luidjy.set_way_point:main',
+            'set_waypoint_client = turtle_regulation_Luidjy.set_waypoint_client:main',
         ],
     },
 )
